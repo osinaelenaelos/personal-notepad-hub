@@ -1,14 +1,17 @@
 
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, FileText, Activity, Settings, Database, Mail, MessageSquare, Shield } from "lucide-react";
+import { Activity, Users, FileText, Settings, Shield, MessageSquare, BarChart3, Code, Zap, Palette } from "lucide-react";
 import Dashboard from "@/components/admin/Dashboard";
 import UserManagement from "@/components/admin/UserManagement";
 import ContentManagement from "@/components/admin/ContentManagement";
 import SystemSettings from "@/components/admin/SystemSettings";
 import TechnicalInfo from "@/components/admin/TechnicalInfo";
 import Communications from "@/components/admin/Communications";
+import Analytics from "@/components/admin/Analytics";
+import ApiManagement from "@/components/admin/ApiManagement";
+import Automation from "@/components/admin/Automation";
+import AppearanceSettings from "@/components/admin/AppearanceSettings";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -21,15 +24,19 @@ const Index = () => {
             Админ-панель Chrome Extension
           </h1>
           <p className="text-gray-600">
-            Управление расширением для создания текстовых страниц
+            Полная система управления расширением для создания текстовых страниц
           </p>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6 lg:w-auto lg:inline-flex">
+          <TabsList className="grid w-full grid-cols-5 lg:grid-cols-10 lg:w-auto lg:inline-flex">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <Activity className="h-4 w-4" />
               Дашборд
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Аналитика
             </TabsTrigger>
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
@@ -39,9 +46,21 @@ const Index = () => {
               <FileText className="h-4 w-4" />
               Контент
             </TabsTrigger>
+            <TabsTrigger value="api" className="flex items-center gap-2">
+              <Code className="h-4 w-4" />
+              API
+            </TabsTrigger>
+            <TabsTrigger value="automation" className="flex items-center gap-2">
+              <Zap className="h-4 w-4" />
+              Автоматизация
+            </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
               Настройки
+            </TabsTrigger>
+            <TabsTrigger value="appearance" className="flex items-center gap-2">
+              <Palette className="h-4 w-4" />
+              Внешний вид
             </TabsTrigger>
             <TabsTrigger value="technical" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
@@ -57,6 +76,10 @@ const Index = () => {
             <Dashboard />
           </TabsContent>
 
+          <TabsContent value="analytics">
+            <Analytics />
+          </TabsContent>
+
           <TabsContent value="users">
             <UserManagement />
           </TabsContent>
@@ -65,8 +88,20 @@ const Index = () => {
             <ContentManagement />
           </TabsContent>
 
+          <TabsContent value="api">
+            <ApiManagement />
+          </TabsContent>
+
+          <TabsContent value="automation">
+            <Automation />
+          </TabsContent>
+
           <TabsContent value="settings">
             <SystemSettings />
+          </TabsContent>
+
+          <TabsContent value="appearance">
+            <AppearanceSettings />
           </TabsContent>
 
           <TabsContent value="technical">
