@@ -5,30 +5,73 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, UserPlus, Mail, Ban, Shield, Eye } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, UserPlus, Mail, Ban, Shield, Eye, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAdmin } from "@/contexts/AdminContext";
 
 const UserManagement = () => {
   const { toast } = useToast();
+  const { users, addUser, updateUser, deleteUser } = useAdmin();
   const [searchTerm, setSearchTerm] = useState("");
-
-  // Моковые данные пользователей
-  const users = [
-    { id: 1, email: "user1@example.com", name: "Иван Петров", status: "active", pages: 15, lastActive: "2024-01-20", premium: true },
-    { id: 2, email: "user2@example.com", name: "Мария Сидорова", status: "active", pages: 8, lastActive: "2024-01-19", premium: false },
-    { id: 3, email: "user3@example.com", name: "Алексей Козлов", status: "blocked", pages: 3, lastActive: "2024-01-15", premium: false },
-    { id: 4, email: "user4@example.com", name: "Елена Романова", status: "inactive", pages: 22, lastActive: "2024-01-10", premium: true },
-  ];
+  const [newUser, setNewUser] = useState({
+    name: "",
+    email: "",
+    status: "active" as const,
+    premium: false,
+    pages: 0,
+    lastActive: new Date().toISOString().split('T')[0]
+  });
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const filteredUsers = users.filter(user => 
     user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleAction = (action: string, userId: number) => {
+  const handleAddUser = () => {
+    if (!newUser.name || !newUser.email) {
+      toast({
+        title: "Ошибка",
+        description: "Заполните все обязательные поля",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    addUser(newUser);
     toast({
-      title: "Действие выполнено",
-      description: `${action} для пользователя ID ${userId}`,
+      title: "Пользователь добавлен",
+      description: `Пользователь ${newUser.name} успешно добавлен`,
+    });
+    
+    setNewUser({
+      name: "",
+      email: "",
+      status: "active",
+      premium: false,
+      pages: 0,
+      lastActive: new Date().toISOString().split('T')[0]
+    });
+    setIsDialogOpen(false);
+  };
+
+  const handleToggleStatus = (userId: number, currentStatus: string) => {
+    const newStatus = currentStatus === "active" ? "blocked" : "active";
+    updateUser(userId, { status: newStatus });
+    toast({
+      title: "Статус изменен",
+      description: `Пользователь ${newStatus === "active" ? "разблокирован" : "заблокирован"}`,
+    });
+  };
+
+  const handleDeleteUser = (userId: number, userName: string) => {
+    deleteUser(userId);
+    toast({
+      title: "Пользователь удален",
+      description: `Пользователь ${userName} удален из системы`,
     });
   };
 
@@ -65,10 +108,60 @@ const UserManagement = () => {
                 className="pl-10"
               />
             </div>
-            <Button>
-              <UserPlus className="h-4 w-4 mr-2" />
-              Добавить пользователя
-            </Button>
+            
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Добавить пользователя
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Добавить нового пользователя</DialogTitle>
+                  <DialogDescription>
+                    Заполните информацию о новом пользователе
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="name" className="text-right">Имя</Label>
+                    <Input
+                      id="name"
+                      value={newUser.name}
+                      onChange={(e) => setNewUser({...newUser, name: e.target.value})}
+                      className="col-span-3"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="email" className="text-right">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={newUser.email}
+                      onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+                      className="col-span-3"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="status" className="text-right">Статус</Label>
+                    <Select value={newUser.status} onValueChange={(value: any) => setNewUser({...newUser, status: value})}>
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Активен</SelectItem>
+                        <SelectItem value="inactive">Неактивен</SelectItem>
+                        <SelectItem value="blocked">Заблокирован</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button onClick={handleAddUser}>Добавить пользователя</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
 
           <Table>
@@ -105,23 +198,16 @@ const UserManagement = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleAction("Просмотр", user.id)}
+                        onClick={() => handleToggleStatus(user.id, user.status)}
                       >
-                        <Eye className="h-4 w-4" />
+                        {user.status === "active" ? <Ban className="h-4 w-4" /> : <Shield className="h-4 w-4" />}
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleAction("Написать", user.id)}
+                        onClick={() => handleDeleteUser(user.id, user.name)}
                       >
-                        <Mail className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleAction("Заблокировать", user.id)}
-                      >
-                        <Ban className="h-4 w-4" />
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>

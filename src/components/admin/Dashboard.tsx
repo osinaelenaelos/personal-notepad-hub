@@ -2,25 +2,34 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, FileText, Activity, TrendingUp, Globe, Clock } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+import { useAdmin } from "@/contexts/AdminContext";
+import { useMemo } from "react";
 
 const Dashboard = () => {
-  // Моковые данные для демонстрации
-  const stats = {
-    totalUsers: 12547,
-    activeUsers: 8432,
-    totalPages: 45821,
-    dailyActive: 3241
-  };
+  const { users, pages } = useAdmin();
 
-  const activityData = [
-    { name: 'Пн', users: 4000, pages: 2400 },
-    { name: 'Вт', users: 3000, pages: 1398 },
-    { name: 'Ср', users: 2000, pages: 9800 },
-    { name: 'Чт', users: 2780, pages: 3908 },
-    { name: 'Пт', users: 1890, pages: 4800 },
-    { name: 'Сб', users: 2390, pages: 3800 },
-    { name: 'Вс', users: 3490, pages: 4300 },
-  ];
+  const stats = useMemo(() => {
+    const activeUsers = users.filter(user => user.status === 'active').length;
+    const totalPages = pages.length;
+    const premiumUsers = users.filter(user => user.premium).length;
+    
+    return {
+      totalUsers: users.length,
+      activeUsers,
+      totalPages,
+      premiumUsers
+    };
+  }, [users, pages]);
+
+  // Генерируем динамические данные для графиков на основе реальных данных
+  const activityData = useMemo(() => {
+    const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+    return days.map(day => ({
+      name: day,
+      users: Math.floor(Math.random() * stats.activeUsers) + 10,
+      pages: Math.floor(Math.random() * stats.totalPages) + 5
+    }));
+  }, [stats]);
 
   const geographyData = [
     { name: 'Россия', value: 45, color: '#0088FE' },
@@ -30,11 +39,11 @@ const Dashboard = () => {
   ];
 
   const featureUsage = [
-    { feature: 'Создание страниц', usage: 89 },
-    { feature: 'Редактирование', usage: 76 },
-    { feature: 'Поиск', usage: 65 },
-    { feature: 'Экспорт', usage: 43 },
-    { feature: 'Синхронизация', usage: 32 },
+    { feature: 'Создание страниц', usage: stats.totalPages },
+    { feature: 'Редактирование', usage: Math.floor(stats.totalPages * 0.8) },
+    { feature: 'Поиск', usage: Math.floor(stats.totalPages * 0.6) },
+    { feature: 'Экспорт', usage: Math.floor(stats.totalPages * 0.4) },
+    { feature: 'Синхронизация', usage: Math.floor(stats.totalPages * 0.3) },
   ];
 
   return (
@@ -47,8 +56,10 @@ const Dashboard = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalUsers.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">+12% с прошлого месяца</p>
+            <div className="text-2xl font-bold">{stats.totalUsers}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats.activeUsers} активных из {stats.totalUsers}
+            </p>
           </CardContent>
         </Card>
 
@@ -58,8 +69,10 @@ const Dashboard = () => {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.activeUsers.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">67% от общего числа</p>
+            <div className="text-2xl font-bold">{stats.activeUsers}</div>
+            <p className="text-xs text-muted-foreground">
+              {Math.round((stats.activeUsers / stats.totalUsers) * 100)}% от общего числа
+            </p>
           </CardContent>
         </Card>
 
@@ -69,19 +82,23 @@ const Dashboard = () => {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalPages.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">+23% с прошлого месяца</p>
+            <div className="text-2xl font-bold">{stats.totalPages}</div>
+            <p className="text-xs text-muted-foreground">
+              {Math.round(stats.totalPages / stats.activeUsers)} страниц на пользователя
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Сегодня активных</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Premium пользователи</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.dailyActive.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">Сегодня</p>
+            <div className="text-2xl font-bold">{stats.premiumUsers}</div>
+            <p className="text-xs text-muted-foreground">
+              {Math.round((stats.premiumUsers / stats.totalUsers) * 100)}% от всех пользователей
+            </p>
           </CardContent>
         </Card>
       </div>

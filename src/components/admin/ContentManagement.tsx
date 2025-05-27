@@ -5,31 +5,95 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, FileText, Eye, Trash2, Flag } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, FileText, Eye, Trash2, Flag, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAdmin } from "@/contexts/AdminContext";
 
 const ContentManagement = () => {
   const { toast } = useToast();
+  const { pages, users, addPage, updatePage, deletePage } = useAdmin();
   const [searchTerm, setSearchTerm] = useState("");
-
-  // Моковые данные контента
-  const pages = [
-    { id: 1, title: "Мои заметки", author: "Иван Петров", created: "2024-01-20", size: 1500, status: "public", reports: 0 },
-    { id: 2, title: "Список покупок", author: "Мария Сидорова", created: "2024-01-19", size: 800, status: "private", reports: 0 },
-    { id: 3, title: "Рабочие задачи", author: "Алексей Козлов", created: "2024-01-18", size: 2200, status: "public", reports: 1 },
-    { id: 4, title: "Идеи для проекта", author: "Елена Романова", created: "2024-01-17", size: 3100, status: "public", reports: 0 },
-  ];
+  const [newPage, setNewPage] = useState({
+    title: "",
+    author: "",
+    status: "public" as const,
+    size: 0,
+    reports: 0,
+    created: new Date().toISOString().split('T')[0]
+  });
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [viewContent, setViewContent] = useState<string | null>(null);
 
   const filteredPages = pages.filter(page => 
     page.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     page.author.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleAction = (action: string, pageId: number) => {
-    toast({
-      title: "Действие выполнено",
-      description: `${action} для страницы ID ${pageId}`,
+  const handleAddPage = () => {
+    if (!newPage.title || !newPage.author) {
+      toast({
+        title: "Ошибка",
+        description: "Заполните все обязательные поля",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    addPage({
+      ...newPage,
+      size: Math.floor(Math.random() * 3000) + 500 // Симулируем размер контента
     });
+    
+    toast({
+      title: "Страница создана",
+      description: `Страница "${newPage.title}" успешно создана`,
+    });
+    
+    setNewPage({
+      title: "",
+      author: "",
+      status: "public",
+      size: 0,
+      reports: 0,
+      created: new Date().toISOString().split('T')[0]
+    });
+    setIsDialogOpen(false);
+  };
+
+  const handleToggleStatus = (pageId: number, currentStatus: string) => {
+    const newStatus = currentStatus === "public" ? "private" : "public";
+    updatePage(pageId, { status: newStatus });
+    toast({
+      title: "Статус изменен",
+      description: `Страница теперь ${newStatus === "public" ? "публичная" : "приватная"}`,
+    });
+  };
+
+  const handleFlagPage = (pageId: number) => {
+    const page = pages.find(p => p.id === pageId);
+    if (page) {
+      updatePage(pageId, { reports: page.reports + 1 });
+      toast({
+        title: "Жалоба добавлена",
+        description: "Страница отмечена для проверки",
+      });
+    }
+  };
+
+  const handleDeletePage = (pageId: number, pageTitle: string) => {
+    deletePage(pageId);
+    toast({
+      title: "Страница удалена",
+      description: `Страница "${pageTitle}" удалена`,
+    });
+  };
+
+  const handleViewContent = (page: any) => {
+    setViewContent(`Название: ${page.title}\nАвтор: ${page.author}\nДата создания: ${page.created}\nРазмер: ${page.size} символов\n\nЭто демонстрационный контент страницы. В реальном приложении здесь будет отображаться полный текст страницы пользователя.`);
   };
 
   const getStatusBadge = (status: string) => {
@@ -63,6 +127,62 @@ const ContentManagement = () => {
                 className="pl-10"
               />
             </div>
+
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Создать страницу
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Создать новую страницу</DialogTitle>
+                  <DialogDescription>
+                    Создание новой текстовой страницы
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="title" className="text-right">Название</Label>
+                    <Input
+                      id="title"
+                      value={newPage.title}
+                      onChange={(e) => setNewPage({...newPage, title: e.target.value})}
+                      className="col-span-3"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="author" className="text-right">Автор</Label>
+                    <Select value={newPage.author} onValueChange={(value) => setNewPage({...newPage, author: value})}>
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="Выберите автора" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {users.map(user => (
+                          <SelectItem key={user.id} value={user.name}>{user.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="status" className="text-right">Статус</Label>
+                    <Select value={newPage.status} onValueChange={(value: any) => setNewPage({...newPage, status: value})}>
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="public">Публичная</SelectItem>
+                        <SelectItem value="private">Приватная</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button onClick={handleAddPage}>Создать страницу</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
 
           <Table>
@@ -99,21 +219,28 @@ const ContentManagement = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleAction("Просмотр", page.id)}
+                        onClick={() => handleViewContent(page)}
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleAction("Отметить", page.id)}
+                        onClick={() => handleFlagPage(page.id)}
                       >
                         <Flag className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleAction("Удалить", page.id)}
+                        onClick={() => handleToggleStatus(page.id, page.status)}
+                      >
+                        {page.status === "public" ? "Скрыть" : "Показать"}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeletePage(page.id, page.title)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -123,6 +250,26 @@ const ContentManagement = () => {
               ))}
             </TableBody>
           </Table>
+
+          {/* Модальное окно для просмотра контента */}
+          <Dialog open={!!viewContent} onOpenChange={() => setViewContent(null)}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Просмотр содержимого страницы</DialogTitle>
+              </DialogHeader>
+              <div className="py-4">
+                <Textarea
+                  value={viewContent || ""}
+                  readOnly
+                  rows={10}
+                  className="w-full"
+                />
+              </div>
+              <DialogFooter>
+                <Button onClick={() => setViewContent(null)}>Закрыть</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </CardContent>
       </Card>
     </div>
