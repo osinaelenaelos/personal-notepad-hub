@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 
@@ -39,11 +38,40 @@ export interface SystemAlert {
   resolved: boolean;
 }
 
+export interface UserLimits {
+  guest: {
+    maxPages: number;
+    storageLimit: number; // MB
+    dailyExports: number;
+  };
+  registered: {
+    maxPages: number;
+    storageLimit: number; // MB
+    dailyExports: number;
+  };
+  premium: {
+    maxPages: number;
+    storageLimit: number; // MB
+    dailyExports: number;
+  };
+}
+
+export interface UserFeature {
+  id: number;
+  name: string;
+  description: string;
+  guest: boolean;
+  registered: boolean;
+  premium: boolean;
+}
+
 interface AdminContextType {
   users: User[];
   pages: Page[];
   automationRules: AutomationRule[];
   alerts: SystemAlert[];
+  userLimits: UserLimits;
+  userFeatures: UserFeature[];
   addUser: (user: Omit<User, 'id'>) => void;
   updateUser: (id: number, updates: Partial<User>) => void;
   deleteUser: (id: number) => void;
@@ -56,6 +84,10 @@ interface AdminContextType {
   addAlert: (alert: Omit<SystemAlert, 'id'>) => void;
   resolveAlert: (id: number) => void;
   deleteAlert: (id: number) => void;
+  updateUserLimits: (limits: UserLimits) => void;
+  updateUserFeatures: (id: number, feature: UserFeature) => void;
+  addUserFeature: (feature: Omit<UserFeature, 'id'>) => void;
+  deleteUserFeature: (id: number) => void;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -87,11 +119,41 @@ const initialAlerts: SystemAlert[] = [
   { id: 4, type: "success", message: "Обновление системы успешно установлено", timestamp: "2024-01-19 18:30", resolved: true },
 ];
 
+const initialUserLimits: UserLimits = {
+  guest: {
+    maxPages: 5,
+    storageLimit: 10, // 10 MB
+    dailyExports: 2,
+  },
+  registered: {
+    maxPages: 50,
+    storageLimit: 100, // 100 MB
+    dailyExports: 10,
+  },
+  premium: {
+    maxPages: 500,
+    storageLimit: 1000, // 1 GB
+    dailyExports: 100,
+  },
+};
+
+const initialUserFeatures: UserFeature[] = [
+  { id: 1, name: "Создание страниц", description: "Создание и редактирование текстовых страниц", guest: true, registered: true, premium: true },
+  { id: 2, name: "Сохранение в облаке", description: "Синхронизация данных в облачном хранилище", guest: false, registered: true, premium: true },
+  { id: 3, name: "Экспорт в PDF", description: "Экспорт страниц в формат PDF", guest: false, registered: true, premium: true },
+  { id: 4, name: "Расширенный поиск", description: "Поиск по содержимому всех страниц", guest: false, registered: false, premium: true },
+  { id: 5, name: "Темы оформления", description: "Кастомизация внешнего вида", guest: false, registered: true, premium: true },
+  { id: 6, name: "Совместная работа", description: "Совместное редактирование страниц", guest: false, registered: false, premium: true },
+  { id: 7, name: "API доступ", description: "Программный доступ к данным через API", guest: false, registered: false, premium: true },
+];
+
 export function AdminProvider({ children }: { children: ReactNode }) {
   const [users, setUsers] = useLocalStorage<User[]>('admin-users', initialUsers);
   const [pages, setPages] = useLocalStorage<Page[]>('admin-pages', initialPages);
   const [automationRules, setAutomationRules] = useLocalStorage<AutomationRule[]>('admin-rules', initialRules);
   const [alerts, setAlerts] = useLocalStorage<SystemAlert[]>('admin-alerts', initialAlerts);
+  const [userLimits, setUserLimits] = useLocalStorage<UserLimits>('admin-user-limits', initialUserLimits);
+  const [userFeatures, setUserFeatures] = useLocalStorage<UserFeature[]>('admin-user-features', initialUserFeatures);
 
   const addUser = (user: Omit<User, 'id'>) => {
     const newUser = { ...user, id: Date.now() };
@@ -180,12 +242,55 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     setAlerts(prev => prev.filter(alert => alert.id !== id));
   };
 
+  const updateUserLimits = (limits: UserLimits) => {
+    setUserLimits(limits);
+    
+    addAlert({
+      type: 'info',
+      message: 'Лимиты пользователей обновлены',
+      timestamp: new Date().toISOString(),
+      resolved: false
+    });
+  };
+
+  const updateUserFeatures = (id: number, feature: UserFeature) => {
+    setUserFeatures(prev => prev.map(f => f.id === id ? feature : f));
+  };
+
+  const addUserFeature = (feature: Omit<UserFeature, 'id'>) => {
+    const newFeature = { ...feature, id: Date.now() };
+    setUserFeatures(prev => [...prev, newFeature]);
+    
+    addAlert({
+      type: 'info',
+      message: `Добавлена новая функция: ${feature.name}`,
+      timestamp: new Date().toISOString(),
+      resolved: false
+    });
+  };
+
+  const deleteUserFeature = (id: number) => {
+    const feature = userFeatures.find(f => f.id === id);
+    setUserFeatures(prev => prev.filter(f => f.id !== id));
+    
+    if (feature) {
+      addAlert({
+        type: 'warning',
+        message: `Функция "${feature.name}" удалена`,
+        timestamp: new Date().toISOString(),
+        resolved: false
+      });
+    }
+  };
+
   return (
     <AdminContext.Provider value={{
       users,
       pages,
       automationRules,
       alerts,
+      userLimits,
+      userFeatures,
       addUser,
       updateUser,
       deleteUser,
@@ -198,6 +303,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       addAlert,
       resolveAlert,
       deleteAlert,
+      updateUserLimits,
+      updateUserFeatures,
+      addUserFeature,
+      deleteUserFeature,
     }}>
       {children}
     </AdminContext.Provider>

@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Activity, Users, FileText, Settings, Shield, MessageSquare, BarChart3, Code, Zap, Palette } from "lucide-react";
+import { Activity, Users, FileText, Settings, Shield, MessageSquare, BarChart3, Code, Zap, Palette, UserCog } from "lucide-react";
 import Dashboard from "@/components/admin/Dashboard";
 import UserManagement from "@/components/admin/UserManagement";
 import ContentManagement from "@/components/admin/ContentManagement";
@@ -12,6 +12,7 @@ import Analytics from "@/components/admin/Analytics";
 import ApiManagement from "@/components/admin/ApiManagement";
 import Automation from "@/components/admin/Automation";
 import AppearanceSettings from "@/components/admin/AppearanceSettings";
+import LimitsAndFeatures from "@/components/admin/LimitsAndFeatures";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -29,7 +30,7 @@ const Index = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 lg:grid-cols-10 lg:w-auto lg:inline-flex">
+          <TabsList className="grid w-full grid-cols-6 lg:grid-cols-11 lg:w-auto lg:inline-flex">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <Activity className="h-4 w-4" />
               Дашборд
@@ -45,6 +46,10 @@ const Index = () => {
             <TabsTrigger value="content" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
               Контент
+            </TabsTrigger>
+            <TabsTrigger value="limits" className="flex items-center gap-2">
+              <UserCog className="h-4 w-4" />
+              Лимиты
             </TabsTrigger>
             <TabsTrigger value="api" className="flex items-center gap-2">
               <Code className="h-4 w-4" />
@@ -86,6 +91,10 @@ const Index = () => {
 
           <TabsContent value="content">
             <ContentManagement />
+          </TabsContent>
+
+          <TabsContent value="limits">
+            <LimitsAndFeatures />
           </TabsContent>
 
           <TabsContent value="api">
