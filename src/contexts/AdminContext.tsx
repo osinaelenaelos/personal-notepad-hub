@@ -77,11 +77,14 @@ const initialPages: Page[] = [
 const initialRules: AutomationRule[] = [
   { id: 1, name: "Автоблокировка спама", description: "Блокировать пользователей при создании более 50 страниц в час", status: "active", triggered: 23, lastTrigger: "2024-01-20 13:45" },
   { id: 2, name: "Уведомление о превышении лимитов", description: "Отправлять уведомления при превышении лимитов сервера", status: "active", triggered: 8, lastTrigger: "2024-01-20 12:30" },
+  { id: 3, name: "Автоочистка логов", description: "Удалять старые логи старше 30 дней", status: "paused", triggered: 0, lastTrigger: "Никогда" },
 ];
 
 const initialAlerts: SystemAlert[] = [
   { id: 1, type: "warning", message: "Высокая загрузка процессора (85%)", timestamp: "2024-01-20 14:30", resolved: false },
   { id: 2, type: "info", message: "Завершено резервное копирование", timestamp: "2024-01-20 02:00", resolved: true },
+  { id: 3, type: "error", message: "Ошибка подключения к базе данных", timestamp: "2024-01-20 10:15", resolved: false },
+  { id: 4, type: "success", message: "Обновление системы успешно установлено", timestamp: "2024-01-19 18:30", resolved: true },
 ];
 
 export function AdminProvider({ children }: { children: ReactNode }) {
@@ -93,6 +96,14 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const addUser = (user: Omit<User, 'id'>) => {
     const newUser = { ...user, id: Date.now() };
     setUsers(prev => [...prev, newUser]);
+    
+    // Добавить системное уведомление
+    addAlert({
+      type: 'info',
+      message: `Новый пользователь ${user.name} зарегистрирован в системе`,
+      timestamp: new Date().toISOString(),
+      resolved: false
+    });
   };
 
   const updateUser = (id: number, updates: Partial<User>) => {
@@ -100,7 +111,17 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const deleteUser = (id: number) => {
+    const user = users.find(u => u.id === id);
     setUsers(prev => prev.filter(user => user.id !== id));
+    
+    if (user) {
+      addAlert({
+        type: 'warning',
+        message: `Пользователь ${user.name} удален из системы`,
+        timestamp: new Date().toISOString(),
+        resolved: false
+      });
+    }
   };
 
   const addPage = (page: Omit<Page, 'id'>) => {
@@ -119,6 +140,13 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const addAutomationRule = (rule: Omit<AutomationRule, 'id'>) => {
     const newRule = { ...rule, id: Date.now() };
     setAutomationRules(prev => [...prev, newRule]);
+    
+    addAlert({
+      type: 'info',
+      message: `Создано новое правило автоматизации: ${rule.name}`,
+      timestamp: new Date().toISOString(),
+      resolved: false
+    });
   };
 
   const updateAutomationRule = (id: number, updates: Partial<AutomationRule>) => {
@@ -126,7 +154,17 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const deleteAutomationRule = (id: number) => {
+    const rule = automationRules.find(r => r.id === id);
     setAutomationRules(prev => prev.filter(rule => rule.id !== id));
+    
+    if (rule) {
+      addAlert({
+        type: 'warning',
+        message: `Правило автоматизации "${rule.name}" удалено`,
+        timestamp: new Date().toISOString(),
+        resolved: false
+      });
+    }
   };
 
   const addAlert = (alert: Omit<SystemAlert, 'id'>) => {

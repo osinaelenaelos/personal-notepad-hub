@@ -3,137 +3,70 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Zap, Clock, AlertTriangle, CheckCircle, Settings, Plus } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Zap, Plus, Play, Pause, Trash2, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAdmin } from "@/contexts/AdminContext";
 
 const Automation = () => {
   const { toast } = useToast();
-  const [newRuleName, setNewRuleName] = useState("");
-
-  const automationRules = [
-    {
-      id: 1,
-      name: "Автоблокировка спама",
-      description: "Блокировать пользователей при создании более 50 страниц в час",
-      status: "active",
-      triggered: 23,
-      lastTrigger: "2024-01-20 13:45"
-    },
-    {
-      id: 2,
-      name: "Уведомление о превышении лимитов",
-      description: "Отправлять уведомления при превышении лимитов сервера",
-      status: "active",
-      triggered: 8,
-      lastTrigger: "2024-01-20 12:30"
-    },
-    {
-      id: 3,
-      name: "Автоархивация старых страниц",
-      description: "Архивировать страницы неактивных пользователей через 6 месяцев",
-      status: "paused",
-      triggered: 156,
-      lastTrigger: "2024-01-19 23:15"
-    },
-    {
-      id: 4,
-      name: "Отчет о производительности",
-      description: "Еженедельный отчет о производительности системы",
-      status: "active",
-      triggered: 47,
-      lastTrigger: "2024-01-20 09:00"
-    }
-  ];
-
-  const scheduledTasks = [
-    {
-      id: 1,
-      task: "Резервное копирование базы данных",
-      schedule: "Ежедневно в 02:00",
-      nextRun: "2024-01-21 02:00",
-      status: "scheduled"
-    },
-    {
-      id: 2,
-      task: "Очистка временных файлов",
-      schedule: "Еженедельно по воскресеньям",
-      nextRun: "2024-01-21 03:00",
-      status: "scheduled"
-    },
-    {
-      id: 3,
-      task: "Отправка аналитических отчетов",
-      schedule: "Ежемесячно 1 числа",
-      nextRun: "2024-02-01 10:00",
-      status: "scheduled"
-    },
-    {
-      id: 4,
-      task: "Проверка безопасности",
-      schedule: "Ежедневно в 04:00",
-      nextRun: "2024-01-21 04:00",
-      status: "running"
-    }
-  ];
-
-  const alerts = [
-    {
-      id: 1,
-      type: "warning",
-      message: "Высокая загрузка процессора (85%)",
-      timestamp: "2024-01-20 14:30",
-      resolved: false
-    },
-    {
-      id: 2,
-      type: "info",
-      message: "Завершено резервное копирование",
-      timestamp: "2024-01-20 02:00",
-      resolved: true
-    },
-    {
-      id: 3,
-      type: "error",
-      message: "Ошибка подключения к внешнему API",
-      timestamp: "2024-01-20 11:15",
-      resolved: false
-    },
-    {
-      id: 4,
-      type: "success",
-      message: "Обновление системы успешно установлено",
-      timestamp: "2024-01-19 22:30",
-      resolved: true
-    }
-  ];
-
-  const handleToggleRule = (ruleId: number) => {
-    toast({
-      title: "Правило обновлено",
-      description: `Статус правила ID ${ruleId} изменен`,
-    });
-  };
+  const { automationRules, addAutomationRule, updateAutomationRule, deleteAutomationRule } = useAdmin();
+  const [newRule, setNewRule] = useState({
+    name: "",
+    description: "",
+    status: "active" as const,
+    triggered: 0,
+    lastTrigger: "Никогда"
+  });
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleCreateRule = () => {
-    if (!newRuleName) {
+    if (!newRule.name || !newRule.description) {
       toast({
         title: "Ошибка",
-        description: "Введите название правила",
+        description: "Заполните все поля",
         variant: "destructive"
       });
       return;
     }
-    
+
+    addAutomationRule(newRule);
     toast({
       title: "Правило создано",
-      description: `Правило "${newRuleName}" успешно создано`,
+      description: `Правило автоматизации "${newRule.name}" успешно создано`,
     });
-    setNewRuleName("");
+    
+    setNewRule({
+      name: "",
+      description: "",
+      status: "active",
+      triggered: 0,
+      lastTrigger: "Никогда"
+    });
+    setIsDialogOpen(false);
+  };
+
+  const handleToggleRule = (ruleId: number, currentStatus: string) => {
+    const newStatus = currentStatus === "active" ? "paused" : "active";
+    updateAutomationRule(ruleId, { status: newStatus });
+    toast({
+      title: "Статус изменен",
+      description: `Правило ${newStatus === "active" ? "активировано" : "приостановлено"}`,
+    });
+  };
+
+  const handleDeleteRule = (ruleId: number, ruleName: string) => {
+    deleteAutomationRule(ruleId);
+    toast({
+      title: "Правило удалено",
+      description: `Правило "${ruleName}" удалено`,
+    });
   };
 
   const getStatusBadge = (status: string) => {
@@ -142,25 +75,6 @@ const Automation = () => {
         return <Badge variant="default">Активно</Badge>;
       case "paused":
         return <Badge variant="secondary">Приостановлено</Badge>;
-      case "scheduled":
-        return <Badge variant="outline">Запланировано</Badge>;
-      case "running":
-        return <Badge variant="default">Выполняется</Badge>;
-      default:
-        return <Badge variant="outline">Неизвестно</Badge>;
-    }
-  };
-
-  const getAlertBadge = (type: string) => {
-    switch (type) {
-      case "error":
-        return <Badge variant="destructive">Ошибка</Badge>;
-      case "warning":
-        return <Badge variant="secondary">Предупреждение</Badge>;
-      case "info":
-        return <Badge variant="outline">Информация</Badge>;
-      case "success":
-        return <Badge variant="default">Успех</Badge>;
       default:
         return <Badge variant="outline">Неизвестно</Badge>;
     }
@@ -170,174 +84,158 @@ const Automation = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Автоматизация и уведомления</CardTitle>
+          <CardTitle>Автоматизация</CardTitle>
           <CardDescription>
-            Управление автоматическими правилами, задачами и системными уведомлениями
+            Настройка правил автоматизации для управления системой
           </CardDescription>
         </CardHeader>
       </Card>
 
-      <Tabs defaultValue="rules" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="rules" className="flex items-center gap-2">
-            <Zap className="h-4 w-4" />
-            Правила
-          </TabsTrigger>
-          <TabsTrigger value="tasks" className="flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            Задачи
-          </TabsTrigger>
-          <TabsTrigger value="alerts" className="flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4" />
-            Уведомления
-          </TabsTrigger>
-        </TabsList>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Активных правил</CardTitle>
+            <Zap className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {automationRules.filter(rule => rule.status === "active").length}
+            </div>
+          </CardContent>
+        </Card>
 
-        <TabsContent value="rules">
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Создать новое правило</CardTitle>
-                <CardDescription>Добавить автоматическое правило для системы</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex space-x-4">
-                  <Input
-                    placeholder="Название правила..."
-                    value={newRuleName}
-                    onChange={(e) => setNewRuleName(e.target.value)}
-                    className="flex-1"
-                  />
-                  <Button onClick={handleCreateRule}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Создать
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Всего срабатываний</CardTitle>
+            <Play className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {automationRules.reduce((sum, rule) => sum + rule.triggered, 0)}
+            </div>
+          </CardContent>
+        </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Активные правила</CardTitle>
-                <CardDescription>Управление автоматическими правилами</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Название</TableHead>
-                      <TableHead>Описание</TableHead>
-                      <TableHead>Статус</TableHead>
-                      <TableHead>Срабатываний</TableHead>
-                      <TableHead>Последнее</TableHead>
-                      <TableHead>Действия</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {automationRules.map((rule) => (
-                      <TableRow key={rule.id}>
-                        <TableCell className="font-medium">{rule.name}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{rule.description}</TableCell>
-                        <TableCell>{getStatusBadge(rule.status)}</TableCell>
-                        <TableCell>{rule.triggered}</TableCell>
-                        <TableCell className="text-sm">{rule.lastTrigger}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            <Switch
-                              checked={rule.status === "active"}
-                              onCheckedChange={() => handleToggleRule(rule.id)}
-                            />
-                            <Button variant="outline" size="sm">
-                              <Settings className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Всего правил</CardTitle>
+            <Settings className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{automationRules.length}</div>
+          </CardContent>
+        </Card>
+      </div>
 
-        <TabsContent value="tasks">
-          <Card>
-            <CardHeader>
-              <CardTitle>Запланированные задачи</CardTitle>
-              <CardDescription>Автоматические задачи и их расписание</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Задача</TableHead>
-                    <TableHead>Расписание</TableHead>
-                    <TableHead>Следующий запуск</TableHead>
-                    <TableHead>Статус</TableHead>
-                    <TableHead>Действия</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {scheduledTasks.map((task) => (
-                    <TableRow key={task.id}>
-                      <TableCell className="font-medium">{task.task}</TableCell>
-                      <TableCell>{task.schedule}</TableCell>
-                      <TableCell className="text-sm">{task.nextRun}</TableCell>
-                      <TableCell>{getStatusBadge(task.status)}</TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button variant="outline" size="sm">
-                            Запустить
-                          </Button>
-                          <Button variant="outline" size="sm">
-                            <Settings className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="alerts">
-          <Card>
-            <CardHeader>
-              <CardTitle>Системные уведомления</CardTitle>
-              <CardDescription>Последние уведомления и предупреждения системы</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {alerts.map((alert) => (
-                  <div key={alert.id} className={`p-4 border rounded-lg ${alert.resolved ? 'opacity-60' : ''}`}>
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="flex items-center space-x-3">
-                        {getAlertBadge(alert.type)}
-                        {alert.resolved && <CheckCircle className="h-4 w-4 text-green-600" />}
-                      </div>
-                      <span className="text-sm text-muted-foreground">{alert.timestamp}</span>
-                    </div>
-                    <p className="text-sm">{alert.message}</p>
-                    {!alert.resolved && (
-                      <div className="flex space-x-2 mt-3">
-                        <Button variant="outline" size="sm">
-                          Отметить решенным
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          Подробнее
-                        </Button>
-                      </div>
-                    )}
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>Правила автоматизации</CardTitle>
+              <CardDescription>Управление автоматическими действиями системы</CardDescription>
+            </div>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Создать правило
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Создать правило автоматизации</DialogTitle>
+                  <DialogDescription>
+                    Настройте новое правило для автоматического выполнения действий
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="ruleName">Название правила</Label>
+                    <Input
+                      id="ruleName"
+                      value={newRule.name}
+                      onChange={(e) => setNewRule({...newRule, name: e.target.value})}
+                      placeholder="Введите название правила"
+                    />
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                  <div className="space-y-2">
+                    <Label htmlFor="ruleDescription">Описание</Label>
+                    <Textarea
+                      id="ruleDescription"
+                      value={newRule.description}
+                      onChange={(e) => setNewRule({...newRule, description: e.target.value})}
+                      placeholder="Опишите что делает это правило"
+                      rows={3}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="ruleStatus">Статус</Label>
+                    <Select value={newRule.status} onValueChange={(value: any) => setNewRule({...newRule, status: value})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Активно</SelectItem>
+                        <SelectItem value="paused">Приостановлено</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button onClick={handleCreateRule}>Создать правило</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Название</TableHead>
+                <TableHead>Описание</TableHead>
+                <TableHead>Статус</TableHead>
+                <TableHead>Срабатываний</TableHead>
+                <TableHead>Последнее срабатывание</TableHead>
+                <TableHead>Действия</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {automationRules.map((rule) => (
+                <TableRow key={rule.id}>
+                  <TableCell className="font-medium">{rule.name}</TableCell>
+                  <TableCell className="max-w-xs truncate">{rule.description}</TableCell>
+                  <TableCell>{getStatusBadge(rule.status)}</TableCell>
+                  <TableCell>{rule.triggered}</TableCell>
+                  <TableCell>{rule.lastTrigger}</TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleToggleRule(rule.id, rule.status)}
+                      >
+                        {rule.status === "active" ? (
+                          <Pause className="h-4 w-4" />
+                        ) : (
+                          <Play className="h-4 w-4" />
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteRule(rule.id, rule.name)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 };
