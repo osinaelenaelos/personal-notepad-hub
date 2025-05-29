@@ -1,7 +1,11 @@
 
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Activity, Users, FileText, Settings, Shield, MessageSquare, BarChart3, Code, Zap, Palette, UserCog } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Activity, Users, FileText, Settings, Shield, MessageSquare, BarChart3, Code, Zap, Palette, UserCog, LogOut } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 import Dashboard from "@/components/admin/Dashboard";
 import UserManagement from "@/components/admin/UserManagement";
 import ContentManagement from "@/components/admin/ContentManagement";
@@ -16,17 +20,35 @@ import LimitsAndFeatures from "@/components/admin/LimitsAndFeatures";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleLogout = () => {
+    logout();
+    toast({
+      title: "Выход выполнен",
+      description: "Вы успешно вышли из системы",
+    });
+    navigate("/auth/admin/login");
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto p-6">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Админ-панель Chrome Extension
-          </h1>
-          <p className="text-gray-600">
-            Полная система управления расширением для создания текстовых страниц
-          </p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Админ-панель Chrome Extension
+            </h1>
+            <p className="text-gray-600">
+              Полная система управления расширением для создания текстовых страниц
+            </p>
+          </div>
+          <Button onClick={handleLogout} variant="outline" className="flex items-center gap-2">
+            <LogOut className="h-4 w-4" />
+            Выйти
+          </Button>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
