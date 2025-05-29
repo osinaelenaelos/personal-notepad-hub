@@ -1,73 +1,557 @@
-# Welcome to your Lovable project
 
-## Project info
+# Chrome Extension Admin Panel
 
-**URL**: https://lovable.dev/projects/a2e33e49-aaf1-4159-9d32-5c1e91ee4800
+Полная система управления расширением для создания текстовых страниц с административной панелью.
 
-## How can I edit this code?
+## Описание проекта
 
-There are several ways of editing your application.
+Это веб-приложение представляет собой административную панель для управления Chrome-расширением, которое позволяет создавать текстовые страницы. Система включает в себя управление пользователями, контентом, лимитами, аналитикой, API, автоматизацией и множество других функций.
 
-**Use Lovable**
+### Основные возможности:
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/a2e33e49-aaf1-4159-9d32-5c1e91ee4800) and start prompting.
+- **Система аутентификации**: Защищенный вход в админ-панель с проверкой учетных данных
+- **Управление пользователями**: Просмотр, редактирование и управление пользователями системы
+- **Управление контентом**: Создание, редактирование и удаление контента
+- **Система лимитов**: Настройка лимитов для разных типов пользователей (гости, зарегистрированные, премиум)
+- **Аналитика**: Подробная статистика использования с графиками и метриками
+- **API Management**: Управление API ключами, эндпоинтами и документацией
+- **Автоматизация**: Настройка автоматических задач и триггеров
+- **Настройки внешнего вида**: Кастомизация темы и интерфейса
+- **Техническая информация**: Мониторинг системы и логи
+- **Коммуникации**: Управление уведомлениями и сообщениями
 
-Changes made via Lovable will be committed automatically to this repo.
+## Структура проекта
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+src/
+├── components/
+│   ├── admin/
+│   │   ├── Analytics.tsx
+│   │   ├── ApiManagement.tsx
+│   │   ├── AppearanceSettings.tsx
+│   │   ├── Automation.tsx
+│   │   ├── Communications.tsx
+│   │   ├── ContentManagement.tsx
+│   │   ├── Dashboard.tsx
+│   │   ├── LimitsAndFeatures.tsx
+│   │   ├── SystemSettings.tsx
+│   │   ├── TechnicalInfo.tsx
+│   │   └── UserManagement.tsx
+│   ├── ui/
+│   │   ├── accordion.tsx
+│   │   ├── alert.tsx
+│   │   ├── alert-dialog.tsx
+│   │   ├── aspect-ratio.tsx
+│   │   ├── avatar.tsx
+│   │   ├── badge.tsx
+│   │   ├── breadcrumb.tsx
+│   │   ├── button.tsx
+│   │   ├── calendar.tsx
+│   │   ├── card.tsx
+│   │   ├── carousel.tsx
+│   │   ├── checkbox.tsx
+│   │   ├── collapsible.tsx
+│   │   ├── command.tsx
+│   │   ├── context-menu.tsx
+│   │   ├── dialog.tsx
+│   │   ├── drawer.tsx
+│   │   ├── form.tsx
+│   │   ├── hover-card.tsx
+│   │   ├── input.tsx
+│   │   ├── input-otp.tsx
+│   │   ├── label.tsx
+│   │   ├── skeleton.tsx
+│   │   ├── slider.tsx
+│   │   ├── sonner.tsx
+│   │   ├── switch.tsx
+│   │   ├── table.tsx
+│   │   ├── tabs.tsx
+│   │   ├── textarea.tsx
+│   │   ├── toast.tsx
+│   │   ├── toaster.tsx
+│   │   ├── toggle.tsx
+│   │   ├── toggle-group.tsx
+│   │   ├── tooltip.tsx
+│   │   └── use-toast.ts
+│   └── ProtectedRoute.tsx
+├── contexts/
+│   ├── AdminContext.tsx
+│   └── AuthContext.tsx
+├── hooks/
+│   └── use-toast.ts
+├── lib/
+│   └── utils.ts
+├── pages/
+│   ├── AdminLogin.tsx
+│   ├── Index.tsx
+│   └── NotFound.tsx
+├── App.tsx
+├── index.css
+├── main.tsx
+└── vite-env.d.ts
 ```
 
-**Edit a file directly in GitHub**
+## Подробное описание файлов
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Корневые файлы
 
-**Use GitHub Codespaces**
+#### `src/main.tsx`
+**Путь**: `/src/main.tsx`
+**Назначение**: Точка входа приложения
+**Функции**:
+- Инициализация React приложения
+- Подключение корневого компонента App
+- Настройка CSS стилей
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+#### `src/App.tsx`
+**Путь**: `/src/App.tsx`
+**Назначение**: Главный компонент приложения с роутингом
+**Функции**:
+- Настройка маршрутизации (BrowserRouter, Routes, Route)
+- Инициализация провайдеров (QueryClient, AuthProvider, AdminProvider, TooltipProvider)
+- Настройка toast уведомлений (Toaster, Sonner)
+- Определение защищенных маршрутов
+- Обработка 404 ошибок
 
-## What technologies are used for this project?
+**Маршруты**:
+- `/auth/admin/login` - страница авторизации админа
+- `/` - главная страница (защищенная)
+- `*` - страница 404
 
-This project is built with:
+#### `src/index.css`
+**Путь**: `/src/index.css`
+**Назначение**: Глобальные стили приложения
+**Функции**:
+- Импорт Tailwind CSS
+- Настройка CSS переменных для тем
+- Глобальные стили для компонентов
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Страницы (Pages)
 
-## How can I deploy this project?
+#### `src/pages/Index.tsx`
+**Путь**: `/src/pages/Index.tsx`
+**Назначение**: Главная страница админ-панели
+**Функции**:
+- Отображение табов навигации (11 вкладок)
+- Управление активной вкладкой
+- Кнопка выхода из системы
+- Интеграция всех административных компонентов
 
-Simply open [Lovable](https://lovable.dev/projects/a2e33e49-aaf1-4159-9d32-5c1e91ee4800) and click on Share -> Publish.
+**Вкладки**:
+1. Dashboard - основная панель
+2. Analytics - аналитика
+3. Users - управление пользователями
+4. Content - управление контентом
+5. Limits - лимиты и функции
+6. API - управление API
+7. Automation - автоматизация
+8. Settings - системные настройки
+9. Appearance - внешний вид
+10. Technical - техническая информация
+11. Communications - коммуникации
 
-## Can I connect a custom domain to my Lovable project?
+#### `src/pages/AdminLogin.tsx`
+**Путь**: `/src/pages/AdminLogin.tsx`
+**Назначение**: Страница авторизации администратора
+**Функции**:
+- Форма входа с полями username и password
+- Валидация учетных данных (admin/admin123)
+- Обработка ошибок авторизации
+- Сохранение состояния авторизации в localStorage
+- Toast уведомления об успехе/ошибке
+- Редирект на главную страницу после успешного входа
+- Отображение демо-данных для входа
 
-Yes, you can!
+#### `src/pages/NotFound.tsx`
+**Путь**: `/src/pages/NotFound.tsx`
+**Назначение**: Страница 404 ошибки
+**Функции**:
+- Отображение сообщения о несуществующей странице
+- Логирование попыток доступа к несуществующим маршрутам
+- Ссылка для возврата на главную страницу
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### Контексты (Contexts)
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+#### `src/contexts/AuthContext.tsx`
+**Путь**: `/src/contexts/AuthContext.tsx`
+**Назначение**: Контекст для управления аутентификацией
+**Функции**:
+- Управление состоянием авторизации (isAuthenticated)
+- Функция входа (login) - сохраняет состояние в localStorage
+- Функция выхода (logout) - очищает localStorage
+- Проверка состояния авторизации при загрузке приложения
+- Провайдер для всего приложения
+
+**Интерфейс**:
+```typescript
+interface AuthContextType {
+  isAuthenticated: boolean;
+  login: () => void;
+  logout: () => void;
+}
+```
+
+#### `src/contexts/AdminContext.tsx`
+**Путь**: `/src/contexts/AdminContext.tsx`
+**Назначение**: Контекст для управления данными админ-панели
+**Функции**:
+- Управление пользователями (users) - добавление, редактирование, удаление
+- Управление контентом (content) - CRUD операции
+- Управление лимитами пользователей (userLimits)
+- Управление функциями по типам пользователей (userFeatures)
+- Управление API ключами и эндпоинтами
+- Управление задачами автоматизации
+- Управление настройками внешнего вида
+- Управление уведомлениями системы
+- Сохранение всех данных в localStorage
+- Восстановление данных при загрузке
+
+**Основные состояния**:
+- users: User[] - массив пользователей
+- content: Content[] - массив контента
+- userLimits: объект с лимитами для разных типов пользователей
+- userFeatures: объект с доступными функциями
+- apiKeys: ApiKey[] - API ключи
+- apiEndpoints: ApiEndpoint[] - API эндпоинты
+- automationTasks: AutomationTask[] - задачи автоматизации
+- appearanceSettings: настройки внешнего вида
+- notifications: Notification[] - системные уведомления
+
+### Компоненты
+
+#### `src/components/ProtectedRoute.tsx`
+**Путь**: `/src/components/ProtectedRoute.tsx`
+**Назначение**: Компонент для защиты маршрутов
+**Функции**:
+- Проверка статуса авторизации через useAuth
+- Редирект на страницу логина если пользователь не авторизован
+- Отображение дочерних компонентов для авторизованных пользователей
+
+### Административные компоненты
+
+#### `src/components/admin/Dashboard.tsx`
+**Путь**: `/src/components/admin/Dashboard.tsx`
+**Назначение**: Главная панель управления
+**Функции**:
+- Отображение ключевых метрик (общие пользователи, активные пользователи, контент, доходы)
+- Графики активности пользователей и доходов (использует recharts)
+- Список последних активностей
+- Быстрые действия (добавить пользователя, создать контент, просмотр настроек)
+- Статистика по типам пользователей
+- Интеграция с AdminContext для получения актуальных данных
+
+#### `src/components/admin/UserManagement.tsx`
+**Путь**: `/src/components/admin/UserManagement.tsx`
+**Назначение**: Управление пользователями системы
+**Функции**:
+- Отображение таблицы всех пользователей
+- Поиск и фильтрация пользователей
+- Добавление новых пользователей (форма с валидацией)
+- Редактирование существующих пользователей
+- Удаление пользователей с подтверждением
+- Управление статусом пользователей (активен/заблокирован)
+- Смена типов пользователей (guest/registered/premium)
+- Сортировка по различным полям
+
+#### `src/components/admin/ContentManagement.tsx`
+**Путь**: `/src/components/admin/ContentManagement.tsx`
+**Назначение**: Управление контентом системы
+**Функции**:
+- Отображение списка всего контента
+- Создание нового контента (заголовок, описание, содержимое)
+- Редактирование существующего контента
+- Удаление контента
+- Управление статусом публикации (опубликован/черновик)
+- Поиск по контенту
+- Фильтрация по статусу
+- Управление категориями контента
+
+#### `src/components/admin/LimitsAndFeatures.tsx`
+**Путь**: `/src/components/admin/LimitsAndFeatures.tsx`
+**Назначение**: Управление лимитами и функциями для разных типов пользователей
+**Функции**:
+- Настройка лимитов для Guest пользователей (страницы, хранилище, экспорты)
+- Настройка лимитов для Registered пользователей
+- Настройка лимитов для Premium пользователей
+- Управление доступом к функциям по типам пользователей:
+  - Сохранение в облаке
+  - Экспорт в PDF
+  - Расширенные шаблоны
+  - Приоритетная поддержка
+  - Аналитика
+  - API доступ
+- Сохранение настроек в AdminContext
+
+#### `src/components/admin/Analytics.tsx`
+**Путь**: `/src/components/admin/Analytics.tsx`
+**Назначение**: Аналитика и статистика системы
+**Функции**:
+- Отображение ключевых метрик (просмотры, пользователи, конверсия, доходы)
+- Интерактивные графики с использованием recharts:
+  - График просмотров страниц
+  - График регистраций пользователей
+  - График доходов
+- Статистика по устройствам и браузерам
+- Географическая статистика пользователей
+- Анализ популярного контента
+- Метрики конверсии и вовлеченности
+
+#### `src/components/admin/ApiManagement.tsx`
+**Путь**: `/src/components/admin/ApiManagement.tsx`
+**Назначение**: Управление API системы
+**Функции**:
+- Управление API ключами:
+  - Создание новых ключей
+  - Просмотр существующих ключей
+  - Деактивация ключей
+  - Установка лимитов запросов
+- Управление API эндпоинтами:
+  - Добавление новых эндпоинтов
+  - Редактирование методов и путей
+  - Управление статусом эндпоинтов
+- API документация и примеры использования
+- Мониторинг использования API
+- Статистика запросов
+
+#### `src/components/admin/Automation.tsx`
+**Путь**: `/src/components/admin/Automation.tsx`
+**Назначение**: Автоматизация процессов
+**Функции**:
+- Создание автоматических задач:
+  - Email уведомления
+  - Резервное копирование
+  - Очистка данных
+  - Отчеты
+- Настройка триггеров и условий
+- Управление расписанием выполнения
+- Мониторинг выполнения задач
+- Логи автоматизации
+- Включение/выключение задач
+
+#### `src/components/admin/SystemSettings.tsx`
+**Путь**: `/src/components/admin/SystemSettings.tsx`
+**Назначение**: Системные настройки приложения
+**Функции**:
+- Основные настройки:
+  - Название сайта
+  - Описание
+  - Контактный email
+  - Часовой пояс
+- Настройки безопасности:
+  - Требования к паролю
+  - Двухфакторная аутентификация
+  - Время сессии
+- Настройки email:
+  - SMTP сервер
+  - Порт и безопасность
+  - Аутентификация
+- Настройки резервного копирования
+- Настройки производительности
+
+#### `src/components/admin/AppearanceSettings.tsx`
+**Путь**: `/src/components/admin/AppearanceSettings.tsx`
+**Назначение**: Настройки внешнего вида
+**Функции**:
+- Выбор темы (светлая/темная/системная)
+- Настройка цветовой схемы:
+  - Основной цвет
+  - Акцентный цвет
+  - Цвет фона
+- Настройка шрифтов:
+  - Семейство шрифтов
+  - Размеры
+- Настройка логотипа и фавикона
+- Кастомизация компонентов интерфейса
+- Предпросмотр изменений
+
+#### `src/components/admin/TechnicalInfo.tsx`
+**Путь**: `/src/components/admin/TechnicalInfo.tsx`
+**Назначение**: Техническая информация и мониторинг
+**Функции**:
+- Системная статистика:
+  - Время работы сервера (99.9%)
+  - Загрузка CPU с прогресс-баром
+  - Использование памяти
+  - Активные соединения
+- Мониторинг производительности:
+  - Загрузка диска
+  - Сетевая задержка
+  - Уровень ошибок
+- Системные логи:
+  - Последние события
+  - Уровни логов (error, warning, info)
+  - Временные метки
+  - Фильтрация по типам событий
+
+#### `src/components/admin/Communications.tsx`
+**Путь**: `/src/components/admin/Communications.tsx`
+**Назначение**: Управление коммуникациями и уведомлениями
+**Функции**:
+- Создание и отправка уведомлений:
+  - Заголовок и содержимое
+  - Выбор типа (info, warning, error, success)
+  - Выбор получателей
+- Управление email рассылками
+- Шаблоны сообщений
+- История отправленных сообщений
+- Статистика доставки
+- Настройки push-уведомлений
+
+### UI Компоненты (shadcn/ui)
+
+Все компоненты в папке `src/components/ui/` являются переиспользуемыми UI компонентами из библиотеки shadcn/ui:
+
+#### `src/components/ui/button.tsx`
+**Назначение**: Универсальная кнопка с вариантами стилей
+**Варианты**: default, destructive, outline, secondary, ghost, link
+**Размеры**: default, sm, lg, icon
+
+#### `src/components/ui/card.tsx`
+**Назначение**: Контейнер для группировки контента
+**Компоненты**: Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter
+
+#### `src/components/ui/input.tsx`
+**Назначение**: Поле ввода текста с валидацией и стилизацией
+
+#### `src/components/ui/table.tsx`
+**Назначение**: Компоненты для создания таблиц
+**Компоненты**: Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableCaption
+
+#### `src/components/ui/tabs.tsx`
+**Назначение**: Навигация по вкладкам
+**Компоненты**: Tabs, TabsList, TabsTrigger, TabsContent
+
+#### `src/components/ui/dialog.tsx`
+**Назначение**: Модальные окна и диалоги
+**Компоненты**: Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription
+
+#### `src/components/ui/form.tsx`
+**Назначение**: Компоненты для создания форм с валидацией
+**Интеграция**: React Hook Form и Zod
+
+#### `src/components/ui/toast.tsx` и `src/components/ui/toaster.tsx`
+**Назначение**: Система уведомлений
+**Функции**: Отображение временных сообщений пользователю
+
+#### Остальные UI компоненты:
+- `alert.tsx` - компоненты предупреждений
+- `badge.tsx` - значки и метки
+- `checkbox.tsx` - чекбоксы
+- `switch.tsx` - переключатели
+- `slider.tsx` - ползунки
+- `textarea.tsx` - многострочные поля ввода
+- `calendar.tsx` - календарь для выбора дат
+- `accordion.tsx` - складные панели
+- `tooltip.tsx` - всплывающие подсказки
+- И другие компоненты для создания современного UI
+
+### Утилиты и хуки
+
+#### `src/lib/utils.ts`
+**Путь**: `/src/lib/utils.ts`
+**Назначение**: Утилитные функции
+**Функции**:
+- `cn()` - объединение CSS классов с использованием clsx и tailwind-merge
+
+#### `src/hooks/use-toast.ts`
+**Путь**: `/src/hooks/use-toast.ts`
+**Назначение**: Хук для управления toast уведомлениями
+**Функции**:
+- Создание и управление уведомлениями
+- Различные типы уведомлений (success, error, warning, info)
+
+### Конфигурационные файлы
+
+#### `vite.config.ts`
+**Назначение**: Конфигурация Vite
+**Функции**:
+- Настройка React плагина
+- Настройка алиасов путей (@)
+- Конфигурация development сервера
+- Настройка Lovable tagger для разработки
+
+#### `tailwind.config.ts`
+**Назначение**: Конфигурация Tailwind CSS
+**Функции**:
+- Настройка цветовой палитры
+- Конфигурация анимаций
+- Настройка responsive точек
+- Кастомные CSS переменные
+
+#### `package.json` (автоматически создается)
+**Назначение**: Описание проекта и зависимостей
+**Зависимости**:
+- React 18+ для UI
+- TypeScript для типизации
+- Tailwind CSS для стилизации
+- Radix UI для доступных компонентов
+- React Router для навигации
+- TanStack Query для состояния
+- Recharts для графиков
+- Lucide React для иконок
+
+## Технологический стек
+
+- **React 18+** - основная библиотека UI
+- **TypeScript** - статическая типизация
+- **Vite** - сборщик и dev сервер
+- **Tailwind CSS** - CSS фреймворк
+- **shadcn/ui** - библиотека компонентов
+- **React Router** - маршрутизация
+- **TanStack Query** - управление состоянием сервера
+- **Recharts** - библиотека графиков
+- **React Hook Form** - управление формами
+- **Zod** - валидация схем
+- **Lucide React** - иконки
+- **date-fns** - работа с датами
+
+## Функциональные возможности
+
+### Аутентификация
+- Защищенные маршруты
+- Сохранение состояния в localStorage
+- Автоматический редирект
+
+### Управление данными
+- Полное CRUD для всех сущностей
+- Локальное сохранение данных
+- Восстановление состояния при перезагрузке
+
+### Пользовательский интерфейс
+- Адаптивный дизайн
+- Темная/светлая тема
+- Интерактивные компоненты
+- Toast уведомления
+
+### Аналитика и мониторинг
+- Графики и диаграммы
+- Системные метрики
+- Логирование событий
+
+### Расширяемость
+- Модульная архитектура
+- Типизированные интерфейсы
+- Переиспользуемые компоненты
+
+## Запуск проекта
+
+```bash
+# Установка зависимостей
+npm install
+
+# Запуск development сервера
+npm run dev
+
+# Сборка для продакшена
+npm run build
+
+# Предпросмотр production сборки
+npm run preview
+```
+
+## Данные для входа в админ-панель
+
+- **Логин**: admin
+- **Пароль**: admin123
+
+Все данные админ-панели сохраняются в localStorage браузера и восстанавливаются при перезагрузке страницы.
