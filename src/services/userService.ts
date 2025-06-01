@@ -6,54 +6,49 @@ import { FallbackService } from './fallbackService';
 export interface User {
   id: number;
   email: string;
-  role: string;
-  status: string;
+  role: 'guest' | 'user' | 'premium' | 'admin';
+  status: 'active' | 'blocked' | 'pending';
   created_at: string;
   last_active: string;
-  email_verified?: boolean;
+  pages_count: number;
 }
 
 export interface CreateUserRequest {
   email: string;
   password: string;
-  role?: string;
+  role: 'guest' | 'user' | 'premium' | 'admin';
 }
 
 export interface UpdateUserRequest {
   id: number;
   email?: string;
-  role?: string;
-  status?: string;
-}
-
-export interface UsersResponse {
-  users: User[];
-  total: number;
-  page: number;
-  limit: number;
+  role?: 'guest' | 'user' | 'premium' | 'admin';
+  status?: 'active' | 'blocked' | 'pending';
 }
 
 class UserService {
   // Получение списка пользователей с fallback
-  async getUsers(page = 1, limit = 20, search = ''): Promise<ApiResponse<UsersResponse>> {
+  async getUsers(): Promise<ApiResponse<User[]>> {
     try {
       const isApiAvailable = await FallbackService.isApiAvailable();
       
       if (!isApiAvailable) {
         FallbackService.showDemoNotification();
-        return FallbackService.getDemoUsers() as ApiResponse<UsersResponse>;
+        return FallbackService.getDemoUsers() as ApiResponse<User[]>;
       }
 
-      return apiService.get<UsersResponse>(API_CONFIG.ENDPOINTS.USERS, {
-        action: 'get_all',
-        page: page.toString(),
-        limit: limit.toString(),
-        search
-      });
+      const response = await apiService.get<User[]>(API_CONFIG.ENDPOINTS.USERS);
+      
+      // Проверяем и очищаем данные
+      if (response.success && response.data) {
+        response.data = response.data.filter(user => user && user.id);
+      }
+      
+      return response;
     } catch (error) {
-      console.warn('Fallback to demo data due to:', error);
+      console.warn('Fallback to demo users due to:', error);
       FallbackService.showDemoNotification();
-      return FallbackService.getDemoUsers() as ApiResponse<UsersResponse>;
+      return FallbackService.getDemoUsers() as ApiResponse<User[]>;
     }
   }
 
@@ -89,7 +84,7 @@ class UserService {
       if (!isApiAvailable) {
         return {
           success: false,
-          error: 'API недоступен. Редактирование в демо режиме отключено.'
+          error: 'API недоступен. Обновление пользователей в демо режиме отключено.'
         };
       }
 
@@ -113,36 +108,16 @@ class UserService {
       if (!isApiAvailable) {
         return {
           success: false,
-          error: 'API недоступен. Удаление в демо режиме отключено.'
+          error: 'API недоступен. Удаление пользователей в демо режиме отключено.'
         };
       }
 
-      return apiService.delete<void>(`${API_CONFIG.ENDPOINTS.USERS}?action=delete&id=${userId}`);
+      return apiService.delete<void>(`${API_CONFIG.ENDPOINTS.USERS}?id=${userId}`);
     } catch (error) {
       return {
         success: false,
         error: 'Ошибка удаления пользователя'
       };
-    }
-  }
-
-  // Получение статистики пользователей
-  async getUserStats(): Promise<ApiResponse<any>> {
-    try {
-      const isApiAvailable = await FallbackService.isApiAvailable();
-      
-      if (!isApiAvailable) {
-        FallbackService.showDemoNotification();
-        return FallbackService.getDemoStats();
-      }
-
-      return apiService.get<any>(API_CONFIG.ENDPOINTS.USERS, {
-        action: 'get_stats'
-      });
-    } catch (error) {
-      console.warn('Fallback to demo stats due to:', error);
-      FallbackService.showDemoNotification();
-      return FallbackService.getDemoStats();
     }
   }
 }

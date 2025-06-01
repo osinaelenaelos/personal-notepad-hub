@@ -1,118 +1,129 @@
 
-// Сервис для fallback функциональности при недоступности БД
+import { toast } from '@/hooks/use-toast';
+
 export class FallbackService {
-  // Демо данные для случаев, когда БД недоступна
-  private static demoUsers = [
-    {
-      id: 1,
-      email: 'admin@texttabs.com',
-      role: 'admin',
-      status: 'verified',
-      created_at: new Date().toISOString(),
-      last_active: new Date().toISOString()
-    },
-    {
-      id: 2,
-      email: 'user@example.com',
-      role: 'user',
-      status: 'verified',
-      created_at: new Date().toISOString(),
-      last_active: new Date().toISOString()
-    }
-  ];
-
-  private static demoPages = [
-    {
-      id: 1,
-      user_id: 2,
-      title: 'Пример страницы',
-      content: '<h1>Демо контент</h1><p>Это пример страницы пользователя.</p>',
-      url_slug: 'example-page',
-      is_public: true,
-      views_count: 150,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }
-  ];
-
-  private static demoStats = {
-    totalUsers: 125,
-    totalPages: 45,
-    totalViews: 2340,
-    newUsersToday: 5,
-    newPagesToday: 3,
-    verifiedUsers: 98,
-    pendingUsers: 12,
-    blockedUsers: 2,
-    publicPages: 35,
-    privatePages: 10
-  };
-
-  static getDemoUsers() {
-    return {
-      success: true,
-      data: {
-        users: this.demoUsers,
-        total: this.demoUsers.length,
-        page: 1,
-        limit: 20
-      }
-    };
-  }
-
-  static getDemoPages() {
-    return {
-      success: true,
-      data: {
-        pages: this.demoPages,
-        total: this.demoPages.length,
-        page: 1,
-        limit: 20
-      }
-    };
-  }
-
-  static getDemoStats() {
-    return {
-      success: true,
-      data: this.demoStats
-    };
-  }
-
-  static getDemoSettings() {
-    return {
-      success: true,
-      data: {
-        smtp_host: '',
-        smtp_port: '587',
-        smtp_username: '',
-        smtp_password: '',
-        smtp_encryption: 'tls',
-        site_url: window.location.origin,
-        admin_email: 'admin@texttabs.com',
-        user_page_limit: '10',
-        premium_page_limit: '0'
-      }
-    };
-  }
+  private static readonly API_TIMEOUT = 5000; // 5 секунд
 
   // Проверка доступности API
   static async isApiAvailable(): Promise<boolean> {
     try {
-      const response = await fetch('/api/auth.php?action=ping', {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.API_TIMEOUT);
+
+      const response = await fetch('/api/auth.php?action=test', {
         method: 'GET',
+        signal: controller.signal,
         headers: {
           'Content-Type': 'application/json'
         }
       });
-      return response.status === 200 || response.status === 400; // 400 тоже означает, что API работает
-    } catch {
+
+      clearTimeout(timeoutId);
+      return response.ok;
+    } catch (error) {
+      console.warn('API недоступен:', error);
       return false;
     }
   }
 
-  // Показать уведомление о работе в демо режиме
-  static showDemoNotification() {
-    console.warn('⚠️ Приложение работает в демо режиме. База данных недоступна.');
+  // Показ уведомления о демо режиме
+  static showDemoNotification(): void {
+    if (!this.hasShownDemoNotification()) {
+      toast({
+        title: "Демо режим",
+        description: "API недоступен. Используются демонстрационные данные.",
+        variant: "default",
+      });
+      this.markDemoNotificationShown();
+    }
+  }
+
+  private static hasShownDemoNotification(): boolean {
+    return sessionStorage.getItem('demo_notification_shown') === 'true';
+  }
+
+  private static markDemoNotificationShown(): void {
+    sessionStorage.setItem('demo_notification_shown', 'true');
+  }
+
+  // Демонстрационные данные для настроек
+  static getDemoSettings() {
+    return {
+      success: true,
+      data: {
+        smtp_host: 'smtp.gmail.com',
+        smtp_port: '587',
+        smtp_username: 'demo@example.com',
+        smtp_password: '••••••••',
+        smtp_encryption: 'tls',
+        site_url: 'https://demo.texttabs.com',
+        admin_email: 'admin@texttabs.com',
+        user_page_limit: '10',
+        premium_page_limit: '100'
+      }
+    };
+  }
+
+  // Демонстрационные пользователи
+  static getDemoUsers() {
+    return {
+      success: true,
+      data: [
+        {
+          id: 1,
+          email: 'admin@texttabs.com',
+          role: 'admin',
+          status: 'active',
+          created_at: new Date().toISOString(),
+          last_active: new Date().toISOString(),
+          pages_count: 0
+        },
+        {
+          id: 2,
+          email: 'user@example.com',
+          role: 'user',
+          status: 'active',
+          created_at: new Date().toISOString(),
+          last_active: new Date().toISOString(),
+          pages_count: 5
+        }
+      ]
+    };
+  }
+
+  // Демонстрационные страницы
+  static getDemoPages() {
+    return {
+      success: true,
+      data: [
+        {
+          id: 1,
+          user_id: 2,
+          title: 'Демо страница',
+          slug: 'demo-page',
+          is_public: true,
+          views_count: 42,
+          created_at: new Date().toISOString()
+        }
+      ]
+    };
+  }
+
+  // Демонстрационная статистика
+  static getDemoStats() {
+    return {
+      success: true,
+      data: {
+        total_users: 2,
+        total_pages: 1,
+        active_users: 2,
+        public_pages: 1,
+        recent_users: this.getDemoUsers().data,
+        users_chart: [
+          { date: '2025-01-01', users: 1 },
+          { date: '2025-01-02', users: 2 }
+        ]
+      }
+    };
   }
 }

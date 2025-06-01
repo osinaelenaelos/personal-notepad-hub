@@ -35,12 +35,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Проверяем токен при загрузке приложения
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      authService.verifyToken()
-        .then(response => {
-          if (response.success && response.data) {
+    const initializeAuth = async () => {
+      try {
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+          const response = await authService.verifyToken();
+          if (response && response.success && response.data) {
             setUser({
               id: response.data.user_id,
               email: response.data.email,
@@ -49,22 +49,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           } else {
             localStorage.removeItem('auth_token');
           }
-        })
-        .catch(() => {
-          localStorage.removeItem('auth_token');
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
-    } else {
-      setIsLoading(false);
-    }
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        localStorage.removeItem('auth_token');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializeAuth();
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       const response = await authService.login(email, password);
-      if (response.success && response.data) {
+      if (response && response.success && response.data) {
         localStorage.setItem('auth_token', response.data.token);
         setUser({
           id: response.data.user.id,
@@ -75,6 +75,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       return false;
     } catch (error) {
+      console.error('Login error:', error);
       return false;
     }
   };

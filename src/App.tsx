@@ -10,6 +10,7 @@ import Pages from '@/pages/Pages';
 import Analytics from '@/pages/Analytics';
 import Settings from '@/pages/Settings';
 import Profile from '@/pages/Profile';
+import AdminLogin from '@/pages/AdminLogin';
 import NotFound from '@/pages/NotFound';
 import { Toaster } from '@/components/ui/toaster';
 import './App.css';
@@ -18,19 +19,30 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <ProtectedRoute>
-          <Layout>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/users" element={<Users />} />
-              <Route path="/pages" element={<Pages />} />
-              <Route path="/analytics" element={<Analytics />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Layout>
-        </ProtectedRoute>
+        <Routes>
+          {/* Публичный маршрут авторизации */}
+          <Route path="/auth/admin/login" element={<AdminLogin />} />
+          
+          {/* Защищенные маршруты */}
+          <Route
+            path="/*"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Routes>
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/users" element={<Users />} />
+                    <Route path="/pages" element={<Pages />} />
+                    <Route path="/analytics" element={<Analytics />} />
+                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
         <Toaster />
       </Router>
     </AuthProvider>
