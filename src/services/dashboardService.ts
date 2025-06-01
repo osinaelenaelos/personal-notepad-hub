@@ -75,12 +75,12 @@ class DashboardService {
               }
             ],
             usersChart: [
-              { month: 'Янв', users: 120 },
-              { month: 'Фев', users: 150 },
-              { month: 'Мар', users: 180 },
-              { month: 'Апр', users: 220 },
-              { month: 'Май', users: 280 },
-              { month: 'Июн', users: 350 }
+              { date: '2024-01-01', month: 'Янв', users: 120 },
+              { date: '2024-02-01', month: 'Фев', users: 150 },
+              { date: '2024-03-01', month: 'Мар', users: 180 },
+              { date: '2024-04-01', month: 'Апр', users: 220 },
+              { date: '2024-05-01', month: 'Май', users: 280 },
+              { date: '2024-06-01', month: 'Июн', users: 350 }
             ],
             activityChart: [
               { date: '2024-01-01', pages: 45 },
@@ -122,6 +122,7 @@ class DashboardService {
               created_at: user.created_at || new Date().toISOString()
             })),
             usersChart: (data.users_chart || []).map((item: any) => ({
+              date: item.date || item.month || new Date().toISOString(),
               month: item.month || item.date || '',
               users: item.users || 0
             })),

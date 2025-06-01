@@ -80,8 +80,8 @@ class UserService {
           .map(user => ({
             id: user.id,
             email: user.email || '',
-            role: user.role || 'user',
-            status: user.status || 'pending',
+            role: (user.role || 'user') as 'guest' | 'user' | 'premium' | 'admin',
+            status: (user.status || 'pending') as 'active' | 'blocked' | 'pending' | 'verified',
             created_at: user.created_at || new Date().toISOString(),
             createdAt: user.created_at || new Date().toISOString(),
             last_active: user.last_active || new Date().toISOString(),

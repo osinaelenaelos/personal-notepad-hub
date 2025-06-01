@@ -19,6 +19,7 @@ export const API_CONFIG = {
     PAGES: '/pages.php',
     
     // Статистика и дашборд
+    DASHBOARD: '/dashboard.php', // Добавляем недостающий endpoint
     DASHBOARD_STATS: '/dashboard.php',
     
     // Настройки
