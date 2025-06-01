@@ -4,19 +4,39 @@ import { API_CONFIG } from '@/config/api';
 import { FallbackService } from './fallbackService';
 
 export interface User {
-  id: number;
+  id: number | string;
   email: string;
   role: 'guest' | 'user' | 'premium' | 'admin';
-  status: 'active' | 'blocked' | 'pending';
+  status: 'active' | 'blocked' | 'pending' | 'verified';
   created_at: string;
+  createdAt: string;
   last_active: string;
+  lastActive: string;
   pages_count: number;
+  pagesCount: number;
+}
+
+export interface UsersResponse {
+  users: User[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface UserFilters {
+  search?: string;
+  status?: string;
+  role?: string;
+  page?: number;
+  limit?: number;
 }
 
 export interface CreateUserRequest {
   email: string;
-  password: string;
-  role: 'guest' | 'user' | 'premium' | 'admin';
+  password?: string;
+  role?: 'guest' | 'user' | 'premium' | 'admin';
+  status?: 'active' | 'blocked' | 'pending';
+  pagesCount?: number;
 }
 
 export interface UpdateUserRequest {
@@ -27,32 +47,80 @@ export interface UpdateUserRequest {
 }
 
 class UserService {
-  // Получение списка пользователей с fallback
-  async getUsers(): Promise<ApiResponse<User[]>> {
+  async getUsers(filters?: UserFilters): Promise<ApiResponse<UsersResponse>> {
     try {
       const isApiAvailable = await FallbackService.isApiAvailable();
       
       if (!isApiAvailable) {
         FallbackService.showDemoNotification();
-        return FallbackService.getDemoUsers() as ApiResponse<User[]>;
+        const demoUsers = FallbackService.getDemoUsers().data || [];
+        return {
+          success: true,
+          data: {
+            users: demoUsers,
+            total: demoUsers.length,
+            page: 1,
+            limit: 10
+          }
+        };
       }
 
-      const response = await apiService.get<User[]>(API_CONFIG.ENDPOINTS.USERS);
+      const params: Record<string, string> = {};
+      if (filters?.search) params.search = filters.search;
+      if (filters?.status) params.status = filters.status;
+      if (filters?.role) params.role = filters.role;
+
+      const response = await apiService.get<any>(API_CONFIG.ENDPOINTS.USERS, params);
       
-      // Проверяем и очищаем данные
       if (response.success && response.data) {
-        response.data = response.data.filter(user => user && user.id);
+        const users = Array.isArray(response.data) ? response.data : [];
+        
+        const normalizedUsers = users
+          .filter(user => user && user.id)
+          .map(user => ({
+            id: user.id,
+            email: user.email || '',
+            role: user.role || 'user',
+            status: user.status || 'pending',
+            created_at: user.created_at || new Date().toISOString(),
+            createdAt: user.created_at || new Date().toISOString(),
+            last_active: user.last_active || new Date().toISOString(),
+            lastActive: user.last_active || new Date().toISOString(),
+            pages_count: user.pages_count || 0,
+            pagesCount: user.pages_count || 0
+          }));
+
+        return {
+          success: true,
+          data: {
+            users: normalizedUsers,
+            total: normalizedUsers.length,
+            page: 1,
+            limit: 10
+          }
+        };
       }
       
-      return response;
+      return {
+        success: false,
+        error: 'Не удалось получить пользователей'
+      };
     } catch (error) {
       console.warn('Fallback to demo users due to:', error);
       FallbackService.showDemoNotification();
-      return FallbackService.getDemoUsers() as ApiResponse<User[]>;
+      const demoUsers = FallbackService.getDemoUsers().data || [];
+      return {
+        success: true,
+        data: {
+          users: demoUsers,
+          total: demoUsers.length,
+          page: 1,
+          limit: 10
+        }
+      };
     }
   }
 
-  // Создание пользователя
   async createUser(userData: CreateUserRequest): Promise<ApiResponse<User>> {
     try {
       const isApiAvailable = await FallbackService.isApiAvailable();
@@ -66,7 +134,9 @@ class UserService {
 
       return apiService.post<User>(API_CONFIG.ENDPOINTS.USERS, {
         action: 'create',
-        ...userData
+        email: userData.email,
+        password: userData.password || 'defaultpassword123',
+        role: userData.role || 'user'
       });
     } catch (error) {
       return {
@@ -76,7 +146,6 @@ class UserService {
     }
   }
 
-  // Обновление пользователя
   async updateUser(userData: UpdateUserRequest): Promise<ApiResponse<User>> {
     try {
       const isApiAvailable = await FallbackService.isApiAvailable();
@@ -100,7 +169,6 @@ class UserService {
     }
   }
 
-  // Удаление пользователя
   async deleteUser(userId: number): Promise<ApiResponse<void>> {
     try {
       const isApiAvailable = await FallbackService.isApiAvailable();

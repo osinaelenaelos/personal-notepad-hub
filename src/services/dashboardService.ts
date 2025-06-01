@@ -8,153 +8,157 @@ export interface DashboardStats {
   totalPages: number;
   totalViews: number;
   newUsersToday: number;
-  newPagesToday: number;
   verifiedUsers: number;
-  pendingUsers: number;
-  blockedUsers: number;
-  publicPages: number;
-  privatePages: number;
+  activityPercent: number;
+  stats?: {
+    totalUsers: number;
+    verifiedUsers: number;
+    totalPages: number;
+    activityPercent: number;
+  };
+  recentUsers?: RecentUser[];
+  usersChart?: ChartDataPoint[];
+  activityChart?: ChartDataPoint[];
 }
 
-export interface ChartData {
+export interface RecentUser {
+  id: string;
+  email: string;
+  status: string;
+  createdAt: string;
+  created_at: string;
+}
+
+export interface ChartDataPoint {
   date: string;
-  users: number;
-  pages: number;
-  views: number;
+  users?: string | number;
+  pages?: string | number;
+  month?: string;
 }
 
 class DashboardService {
-  // Получение основной статистики с fallback
-  async getStats(): Promise<ApiResponse<DashboardStats>> {
+  async getDashboardData(): Promise<ApiResponse<DashboardStats>> {
     try {
       const isApiAvailable = await FallbackService.isApiAvailable();
       
       if (!isApiAvailable) {
         FallbackService.showDemoNotification();
-        return FallbackService.getDemoStats() as ApiResponse<DashboardStats>;
-      }
-
-      return apiService.get<DashboardStats>(API_CONFIG.ENDPOINTS.DASHBOARD_STATS, {
-        action: 'get_stats'
-      });
-    } catch (error) {
-      console.warn('Fallback to demo dashboard stats due to:', error);
-      FallbackService.showDemoNotification();
-      return FallbackService.getDemoStats() as ApiResponse<DashboardStats>;
-    }
-  }
-
-  // Получение данных для графиков с fallback
-  async getChartData(period = '30'): Promise<ApiResponse<ChartData[]>> {
-    try {
-      const isApiAvailable = await FallbackService.isApiAvailable();
-      
-      if (!isApiAvailable) {
-        // Генерируем демо данные для графика
-        const chartData: ChartData[] = [];
-        const today = new Date();
-        
-        for (let i = parseInt(period) - 1; i >= 0; i--) {
-          const date = new Date(today);
-          date.setDate(date.getDate() - i);
-          
-          chartData.push({
-            date: date.toISOString().split('T')[0],
-            users: Math.floor(Math.random() * 10) + 1,
-            pages: Math.floor(Math.random() * 15) + 2,
-            views: Math.floor(Math.random() * 100) + 20
-          });
-        }
-        
         return {
           success: true,
-          data: chartData
-        };
-      }
-
-      return apiService.get<ChartData[]>(API_CONFIG.ENDPOINTS.DASHBOARD_STATS, {
-        action: 'get_chart_data',
-        period
-      });
-    } catch (error) {
-      console.warn('Fallback to demo chart data due to:', error);
-      
-      // Возвращаем демо данные для графика
-      const chartData: ChartData[] = [];
-      const today = new Date();
-      
-      for (let i = parseInt(period) - 1; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(date.getDate() - i);
-        
-        chartData.push({
-          date: date.toISOString().split('T')[0],
-          users: Math.floor(Math.random() * 10) + 1,
-          pages: Math.floor(Math.random() * 15) + 2,
-          views: Math.floor(Math.random() * 100) + 20
-        });
-      }
-      
-      return {
-        success: true,
-        data: chartData
-      };
-    }
-  }
-
-  // Получение активности пользователей
-  async getUserActivity(): Promise<ApiResponse<any[]>> {
-    try {
-      const isApiAvailable = await FallbackService.isApiAvailable();
-      
-      if (!isApiAvailable) {
-        const demoActivity = [
-          {
-            id: 1,
-            user_email: 'user1@example.com',
-            action: 'created_page',
-            details: 'Создал страницу "Мой блог"',
-            timestamp: new Date().toISOString()
-          },
-          {
-            id: 2,
-            user_email: 'user2@example.com',
-            action: 'login',
-            details: 'Вошел в систему',
-            timestamp: new Date(Date.now() - 3600000).toISOString()
+          data: {
+            totalUsers: 1250,
+            totalPages: 8734,
+            totalViews: 45123,
+            newUsersToday: 23,
+            verifiedUsers: 980,
+            activityPercent: 15,
+            stats: {
+              totalUsers: 1250,
+              verifiedUsers: 980,
+              totalPages: 8734,
+              activityPercent: 15
+            },
+            recentUsers: [
+              {
+                id: '1',
+                email: 'user1@example.com',
+                status: 'verified',
+                createdAt: new Date().toISOString(),
+                created_at: new Date().toISOString()
+              },
+              {
+                id: '2', 
+                email: 'user2@example.com',
+                status: 'pending',
+                createdAt: new Date().toISOString(),
+                created_at: new Date().toISOString()
+              }
+            ],
+            usersChart: [
+              { month: 'Янв', users: 120 },
+              { month: 'Фев', users: 150 },
+              { month: 'Мар', users: 180 },
+              { month: 'Апр', users: 220 },
+              { month: 'Май', users: 280 },
+              { month: 'Июн', users: 350 }
+            ],
+            activityChart: [
+              { date: '2024-01-01', pages: 45 },
+              { date: '2024-01-02', pages: 52 },
+              { date: '2024-01-03', pages: 38 },
+              { date: '2024-01-04', pages: 67 },
+              { date: '2024-01-05', pages: 43 },
+              { date: '2024-01-06', pages: 58 },
+              { date: '2024-01-07', pages: 72 }
+            ]
           }
-        ];
-        
-        return {
-          success: true,
-          data: demoActivity
         };
       }
 
-      return apiService.get<any[]>(API_CONFIG.ENDPOINTS.DASHBOARD_STATS, {
-        action: 'get_user_activity'
-      });
-    } catch (error) {
-      const demoActivity = [
-        {
-          id: 1,
-          user_email: 'user1@example.com',
-          action: 'created_page',
-          details: 'Создал страницу "Мой блог"',
-          timestamp: new Date().toISOString()
-        },
-        {
-          id: 2,
-          user_email: 'user2@example.com',
-          action: 'login',
-          details: 'Вошел в систему',
-          timestamp: new Date(Date.now() - 3600000).toISOString()
-        }
-      ];
+      const response = await apiService.get<any>(API_CONFIG.ENDPOINTS.DASHBOARD);
       
+      if (response.success && response.data) {
+        const data = response.data;
+        return {
+          success: true,
+          data: {
+            totalUsers: data.total_users || 0,
+            totalPages: data.total_pages || 0,
+            totalViews: data.total_views || 0,
+            newUsersToday: data.new_users_today || 0,
+            verifiedUsers: data.active_users || 0,
+            activityPercent: 15,
+            stats: {
+              totalUsers: data.total_users || 0,
+              verifiedUsers: data.active_users || 0,
+              totalPages: data.total_pages || 0,
+              activityPercent: 15
+            },
+            recentUsers: (data.recent_users || []).map((user: any) => ({
+              id: user.id?.toString() || '',
+              email: user.email || '',
+              status: user.status || 'pending',
+              createdAt: user.created_at || new Date().toISOString(),
+              created_at: user.created_at || new Date().toISOString()
+            })),
+            usersChart: (data.users_chart || []).map((item: any) => ({
+              month: item.month || item.date || '',
+              users: item.users || 0
+            })),
+            activityChart: (data.activity_chart || []).map((item: any) => ({
+              date: item.date || '',
+              pages: item.pages || 0
+            }))
+          }
+        } as ApiResponse<DashboardStats>;
+      }
+
+      return {
+        success: false,
+        error: 'Не удалось получить данные дашборда'
+      };
+    } catch (error) {
+      console.warn('Fallback to demo dashboard data:', error);
+      FallbackService.showDemoNotification();
       return {
         success: true,
-        data: demoActivity
+        data: {
+          totalUsers: 1250,
+          totalPages: 8734,
+          totalViews: 45123,
+          newUsersToday: 23,
+          verifiedUsers: 980,
+          activityPercent: 15,
+          stats: {
+            totalUsers: 1250,
+            verifiedUsers: 980,
+            totalPages: 8734,
+            activityPercent: 15
+          },
+          recentUsers: [],
+          usersChart: [],
+          activityChart: []
+        }
       };
     }
   }

@@ -9,7 +9,107 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      pages: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          id: string
+          is_public: boolean | null
+          slug: string
+          title: string
+          updated_at: string | null
+          user_id: string | null
+          views_count: number | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          is_public?: boolean | null
+          slug: string
+          title: string
+          updated_at?: string | null
+          user_id?: string | null
+          views_count?: number | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          is_public?: boolean | null
+          slug?: string
+          title?: string
+          updated_at?: string | null
+          user_id?: string | null
+          views_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      system_settings: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          setting_key: string
+          setting_value: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          setting_key: string
+          setting_value?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          setting_key?: string
+          setting_value?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          last_active: string | null
+          password_hash: string | null
+          role: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          last_active?: string | null
+          password_hash?: string | null
+          role?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          last_active?: string | null
+          password_hash?: string | null
+          role?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

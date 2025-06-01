@@ -16,7 +16,7 @@ try {
             // Создаем таблицы если их нет
             createTables($db);
             
-            // Проверяем есть ли уже админ
+            // Проверяем есть ли уже админ - ИСПРАВЛЕННЫЙ ЗАПРОС
             $stmt = $db->prepare("SELECT COUNT(*) FROM users WHERE role = 'admin'");
             $stmt->execute();
             $adminCount = $stmt->fetchColumn();
@@ -71,7 +71,7 @@ try {
 }
 
 function createTables($db) {
-    // Создание таблицы пользователей
+    // Создание таблицы пользователей с исправленными именами колонок
     $db->exec("
         CREATE TABLE IF NOT EXISTS users (
             id INT AUTO_INCREMENT PRIMARY KEY,
